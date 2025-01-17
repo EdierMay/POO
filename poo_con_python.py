@@ -36,6 +36,11 @@ class Personaje:
         print(self.nombre, "ha realizado ", daño, " puntos de daño a ", enemigo.nombre)
         print("Vida restante de ", enemigo.nombre, " es de ", enemigo.vida)
 
+class Guerrero(Personaje):
+    pass
+
+tlotoani = Guerrero ("Apocalimpto",50, 70, 30, 100)
+
 # Crear un personaje
 mi_personaje = Personaje("EdierUwU", 100, 3, 70, 100)
 mi_personaje.imprimir_atributos()
@@ -46,5 +51,3 @@ mi_enemigo = Personaje("Vergil", 70, 30, 70, 100)
 # Realizar un ataque
 mi_personaje.atacar(mi_enemigo)
 mi_enemigo.imprimir_atributos()
-
-
