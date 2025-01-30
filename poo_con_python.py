@@ -1,159 +1,142 @@
 class Personaje:
-    #Atributos de la clase
-    # nombre = 'Default'
-    # fuerza = 0
-    # inteligencia = 0
-    # defensa = 0
-    # vida = 0
-   
- 
-#constructor de la clase
-    def __init__(self, nombre,fuerza,inteligencia,defensa,vida):
-        self.nombre=nombre
-        self.fuerza=fuerza
-        self.inteligencia=inteligencia
-        self.defensa=defensa
-        self.vida=vida
- 
-#para el examen
-#que significa "self" (referencia al mismo objeto)
-#que es init (constructor que inicializa el atributo del objeto)
-#por que empieza con doble guion bajo (por que es un metodo magico, dunder)
-# en que momento se ejecuta el metodo init (cunado se crea o construye el objeto)
- 
+    # Constructor de la clase
+    def __init__(self, nombre, fuerza, inteligencia, defensa, vida):
+        self.nombre = nombre
+        self.fuerza = fuerza
+        self.inteligencia = inteligencia
+        self.defensa = defensa
+        self.vida = vida
+        self.inventario = {"1": 0, "2": 0, "3": 0}
+        self.tipo_pocima_seleccionada = None
+
     def imprimir_atributos(self):
-        print("- Nombre: ", self.nombre)
-        print("-Fuerza: ",self.fuerza)
-        print("-Inteligencia: ",self.inteligencia)
-        print("-Defensa: ",self.defensa)
-        print("-Vida: ",self.vida)
- 
-    def subir_nivel(self, fuerza, inteligencia, defensa):
-        self.fuerza=self.fuerza+fuerza
-        #self.fuerza += fuerza
-        self.inteligencia=self.inteligencia+inteligencia
-        self.defensa=self.defensa+defensa
- 
+        print(self.nombre)
+        print("- Fuerza:", self.fuerza)
+        print("- Inteligencia:", self.inteligencia)
+        print("- Defensa:", self.defensa)
+        print("- Vida:", self.vida)
+
     def esta_vivo(self):
         return self.vida > 0
- 
+
     def morir(self):
-        self.vida=0
-        print(self.nombre,"ha muerto")
-        #return self.vida <=0
- 
-    def dañar(self, enemigo):
-        return self.fuerza - enemigo.defensa
- 
+        self.vida = 0
+        print(self.nombre, "ha muerto.")
+
+    def recibir_ataque(self, daño):
+        self.vida -= daño
+        print(self.nombre, "recibió", daño, "de daño. Vida restante:", self.vida)
+        if not self.esta_vivo():
+            self.morir()
+
     def atacar(self, enemigo):
-        daño= self.dañar(enemigo)
-        enemigo.vida= enemigo.vida - daño
-        print(self.nombre, "ha realizado ", daño, " puntos de daño a", enemigo.nombre)
-        print("Vida de ", enemigo.nombre, " es ", enemigo.vida)
- 
- 
+        daño = max(self.fuerza - enemigo.defensa, 0)
+        enemigo.recibir_ataque(daño)
+
+    def añadir_pocima(self):
+        tipo = input("Escoge tu poción: \n(1) Vida\n(2) Fuerza\n(3) Inteligencia\n")
+        if tipo in self.inventario:
+            self.inventario[tipo] += 1
+            print("Has añadido una pócima de tipo", tipo)
+        else:
+            print("Opción no válida.")
+
+    def usar_pocima(self):
+        tipo = input("¿Qué tipo de pócima quieres usar? (1, 2, 3): ")
+        if tipo in self.inventario and self.inventario[tipo] > 0:
+            self.inventario[tipo] -= 1
+            if tipo == "1":
+                self.vida += 20
+                print(f"{self.nombre} usó una pócima de vida. Vida ahora: {self.vida}.")
+            elif tipo == "2":
+                self.fuerza = int(self.fuerza * 1.5)
+                print(f"{self.nombre} usó una pócima de fuerza. Fuerza ahora: {self.fuerza}.")
+            elif tipo == "3":
+                self.inteligencia = int(self.inteligencia * 1.5)
+                print(f"{self.nombre} usó una pócima de inteligencia. Inteligencia ahora: {self.inteligencia}.")
+        else:
+            print("No tienes esa pócima.")
+
+    @staticmethod
+    def suma_inteligencia(personajes):
+        return sum(personaje.inteligencia for personaje in personajes)
+
+
 class Guerrero(Personaje):
- 
-    #sobreescribir constructor
-    def __init__ (self, nombre, fuerza, defensa, vida, inteligencia, espada):
-        super().__init__(nombre, fuerza, defensa, vida, inteligencia)
+    def __init__(self, nombre, fuerza, inteligencia, defensa, vida, espada=0, escudo=0):
+        super().__init__(nombre, fuerza, inteligencia, defensa, vida)
         self.espada = espada
- 
-    #sobreescribir impresion
+        self.escudo = escudo
+
     def imprimir_atributos(self):
         super().imprimir_atributos()
-        print("-Espada: ",self.espada)
- 
- 
+        print("- Espada:", self.espada)
+        print("- Escudo:", self.escudo)
+
     def elegir_arma(self):
-        opcion = int(input("Elige un arma: \n(1) Lanza de obsidiana, daño 10\n(2)Lanza de chaya, daño 5\n>>>>>>>>"))
+        opcion = int(input("Elige un arma:\n(1) Lanza de obsidiana (daño 10)\n(2) Lanza de chaya (daño 5)\n"))
         if opcion == 1:
             self.espada = 10
-        elif opcion ==2:
+        elif opcion == 2:
             self.espada = 5
         else:
-            print("Opcion no valida")
- 
-    #sobreescribir calculo de daño
-    def daño(self, enemigo):
-        return self.fuerza * self.espada - enemigo.defensa
- 
+            print("Opción no válida.")
+            self.elegir_arma()
+
+    def recibir_ataque(self, daño):
+        if self.escudo > daño:
+            self.escudo -= daño
+            print(f"El escudo de {self.nombre} absorbió el daño. Escudo restante: {self.escudo}.")
+        else:
+            daño_restante = daño - self.escudo
+            self.escudo = 0
+            super().recibir_ataque(daño_restante)
+
+
 class Mago(Personaje):
- 
-    #sobreescribir constructor
-    def __init__ (self, nombre, fuerza, defensa, vida, inteligencia, libro):
-        super().__init__(nombre, fuerza, defensa, vida, inteligencia)
+    def __init__(self, nombre, fuerza, inteligencia, defensa, vida, libro=0):
+        super().__init__(nombre, fuerza, inteligencia, defensa, vida)
         self.libro = libro
- 
-    #sobreescribir impresion
+
     def imprimir_atributos(self):
         super().imprimir_atributos()
-        print("-Libro: ",self.libro)
- 
- 
+        print("- Libro:", self.libro)
+
     def elegir_arma(self):
-        opcion = int(input("Elige un arma: \n(1) Hechiso de programacion, daño 10\n(2)Recetario de chaya, daño 5\n>>>>>>>>"))
+        opcion = int(input("Elige un arma:\n(1) Hechizos de programación (daño 10)\n(2) Recetario de chaya (daño 2)\n"))
         if opcion == 1:
             self.libro = 10
-        elif opcion ==2:
-            self.libro = 5
+        elif opcion == 2:
+            self.libro = 2
         else:
-            print("Opcion no valida")
- 
-    #sobreescribir calculo de daño
-    def daño(self, enemigo):
-        return self.fuerza*self.espada - enemigo.defensa
- 
-michael_jacson = Personaje ("Michael Jacson", 20, 15, 10, 100)
-tlatoani = Guerrero("Apocalipto", 50, 70, 30, 100,5)
-merlin = Mago("Merlin", 20, 15, 10, 100,5)
- 
-#tlatoani.elegir_arma()
-#merlin.elegir_arma()
- 
-#imprimir atributos antes de la tragedia
- 
-tlatoani.imprimir_atributos()
-michael_jacson.imprimir_atributos()
-merlin.imprimir_atributos()
- 
-#ataques emasivos
-michael_jacson.atacar(tlatoani)
-tlatoani.atacar(merlin)
-merlin.atacar(michael_jacson)
- 
- 
-#imprimir atributos antes de la tragedia
- 
-tlatoani.imprimir_atributos()
-michael_jacson.imprimir_atributos()
-merlin.imprimir_atributos()
- 
- 
- 
- 
-#variable del constructo  de la clase
-# mi_personaje = Personaje("Dante",100,3,70,100)
-# mi_personaje.imprimir_atributos()
-# mi_enemigo=Personaje("Vergil",70,30,70,100)
-# mi_personaje.atacar(mi_enemigo)
-# mi_enemigo.imprimir_atributos
-#print(mi_personaje.dañar(mi_enemigo))
-#print(mi_personaje.esta_vivo())
- 
- 
- 
-# mi_personaje.subir_nivel(10,1,5)
-# print("----------------")
-# mi_personaje.imprimir_atributos()
-# mi_personaje.nombre = "ChemaFighter"
-# mi_personaje.fuerza = 30
-# mi_personaje.inteligencia = 12
-# mi_personaje.defensa = 27
-# mi_personaje.vida= 100
- 
-# print("El nombre del personaje es ", mi_personaje.nombre)
-# print("La fuerza del personaje es ", mi_personaje.fuerza)
-# print("el nombre del personaje es ", mi_personaje.inteligencia)
-# print("el nombre del personaje es ", mi_personaje.defensa)
-# print("el nombre del personaje es ", mi_personaje.vida)
+            print("Opción no válida.")
+            self.elegir_arma()
+
+
+# Crear personajes
+michael_jackson = Personaje("Michael Jackson", 2000, 15, 10, 100)
+tlatoani = Guerrero("Tlatoani", 50, 70, 30, 100)
+merlin = Mago("Merlín", 20, 15, 10, 100)
+
+# Sumar inteligencia de los personajes
+personajes = [michael_jackson, tlatoani, merlin]
+inteligencia_total = Personaje.suma_inteligencia(personajes)
+print("La inteligencia total de los personajes es:", inteligencia_total)
+
+# Filtrar personajes por vida
+valor_vida = int(input("Introduce un valor de vida para filtrar personajes: "))
+personajes_filtrados = [p for p in personajes if p.vida > valor_vida]
+
+if personajes_filtrados:
+    print("Personajes con vida mayor a", valor_vida, ":")
+    for p in personajes_filtrados:
+        print("-", p.nombre, "con", p.vida, "de vida.")
+else:
+    print("No hay personajes con vida mayor a", valor_vida, ".")
+
+# Prepararse para la guerra
+print("\nPREPARACIÓN PARA LA GUERRA")
+for personaje in personajes:
+    personaje.añadir_pocima()
+    personaje.usar_pocima()
+    personaje.imprimir_atributos()
